@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: backend
+
+  data:
+    cosmos:
+      uri: ${COSMOS_URI}
+      key: ${COSMOS_KEY}
+      database: ${COSMOS_DATABASE}
+      consistency-level: Eventual
+      populate-query-metrics: true
+      connection-mode: Direct
+      user-agent-suffix: backend-service
+
+server:
+  port: 8080
+
+logging:
+    level:
+        root: INFO
+        com.azure: INFO
+        com.microsoft: INFO
+        com.azure.cosmos: INFO
+        com.cst8916.backend: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
