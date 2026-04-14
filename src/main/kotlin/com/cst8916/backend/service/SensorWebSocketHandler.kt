@@ -14,6 +14,7 @@ class SensorWebSocketHandler: TextWebSocketHandler() {
 
     // This class can be expanded to handle WebSocket events such as connection, disconnection, and message reception.
     override fun afterConnectionEstablished(session: WebSocketSession) {
+        println("WebSocket client connected: ${session.id}")
         activeSessions.add(session)
     }
 

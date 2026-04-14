@@ -3,8 +3,9 @@ package com.cst8916.backend.config
 import com.azure.cosmos.ChangeFeedProcessor
 import com.azure.cosmos.ChangeFeedProcessorBuilder
 import com.cst8916.backend.service.SensorChangeFeedService
-import org.springframework.context.annotation.Bean
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.event.EventListener
 
 /**
  * This configuration class sets up a Change Feed Processor to monitor changes in the "SensorAggregations" container
@@ -14,23 +15,25 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ChangeFeedProcessorConfig(private val cosmosBuilder: CosmosDbConfig
 , private val changeFeedService: SensorChangeFeedService) {
-
+    private lateinit var processor: ChangeFeedProcessor
     /**
      * This bean initializes and starts the Change Feed Processor. It connects to the specified Cosmos DB database
      * and containers, and sets up a handler to process changes using the SensorChangeFeedService.
      *
      * @return The initialized ChangeFeedProcessor instance.
      */
-    @Bean
-    fun changeFeedProcessor(): ChangeFeedProcessor {
-        val client = cosmosBuilder.cosmosClientBuilder().buildAsyncClient()
 
-        val database = client.getDatabase("cst8916-rideaucanaldb") // database name
+    @EventListener(ApplicationReadyEvent::class)
+    fun startChangeFeedProcessor() {
+        println("Starting Change Feed Processor...")
+
+        val client = cosmosBuilder.cosmosClientBuilder().buildAsyncClient()
+        val database = client.getDatabase("rideauCanalDb") // database name
         val monitored = database.getContainer("SensorAggregations") // The container to monitor for changes
         val leases = database.getContainer("SensorLeases") // A container to store leases for the change feed processor
 
         // Build and start the Change Feed Processor
-        val processor = ChangeFeedProcessorBuilder()
+        this.processor = ChangeFeedProcessorBuilder()
             .hostName("cst8916-change-feed-processor") // Unique host name for this processor instance
             .feedContainer(monitored)
             .leaseContainer(leases)
@@ -38,7 +41,10 @@ class ChangeFeedProcessorConfig(private val cosmosBuilder: CosmosDbConfig
                 changeFeedService.onChange(changes)
             }
             .buildChangeFeedProcessor()
-        processor.start()
-        return processor
+
+        this.processor.start()
+            .doOnSuccess { println("Change Feed Processor started.") }
+            .doOnError { error -> println("Failed to start Change Feed Processor: ${error.message}") }
+            .subscribe()
     }
 }

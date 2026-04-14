@@ -13,7 +13,7 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 class WebSocketConfig : WebSocketConfigurer {
 
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(SensorWebSocketHandler(), "/ws/sensors")
+        registry.addHandler(sensorWebSocketHandler(), "/ws/sensors")
             .setAllowedOrigins("*", "https://cst8916final.z9.web.core.windows.net/")
             .addInterceptors(HttpSessionHandshakeInterceptor())
     }
