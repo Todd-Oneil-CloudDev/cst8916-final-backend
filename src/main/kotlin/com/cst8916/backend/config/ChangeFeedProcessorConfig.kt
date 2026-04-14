@@ -25,12 +25,14 @@ class ChangeFeedProcessorConfig(private val cosmosBuilder: CosmosDbConfig
 
     @EventListener(ApplicationReadyEvent::class)
     fun startChangeFeedProcessor() {
+        val monitoredContainer: String = "SensorAggregations"
+        val leaseContainer: String = "SensorLeases"
         println("Starting Change Feed Processor...")
 
         val client = cosmosBuilder.cosmosClientBuilder().buildAsyncClient()
-        val database = client.getDatabase("rideauCanalDb") // database name
-        val monitored = database.getContainer("SensorAggregations") // The container to monitor for changes
-        val leases = database.getContainer("SensorLeases") // A container to store leases for the change feed processor
+        val database = client.getDatabase(cosmosBuilder.database) // database name
+        val monitored = database.getContainer(monitoredContainer) // The container to monitor for changes
+        val leases = database.getContainer(leaseContainer) // A container to store leases for the change feed processor
 
         // Build and start the Change Feed Processor
         this.processor = ChangeFeedProcessorBuilder()
