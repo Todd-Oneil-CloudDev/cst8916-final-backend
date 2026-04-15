@@ -35,16 +35,26 @@ class SensorChangeFeedService(private val webSocketHandler: SensorWebSocketHandl
      */
     fun onChange(changes: List<JsonNode>) {
 
+        println("ChangeFeed triggered with ${changes.size} docs")
+        if(changes.isEmpty()) {
+            println("No new documents. Skipping broadcast.")
+            return
+        }
+
         for (change in changes) {
             val sensorId = change.get("DeviceId").asText() ?: continue // Skip if DeviceId is missing
+            println("Processing change for DeviceId=$sensorId")
 
             // Convert the change to a SensorEntity object
-            val reading = objectMapper.convertValue(change, SensorEntity::class.java)
-
+            val reading = objectMapper.readValue(change.toString(), SensorEntity::class.java)
+            println("Parsed SensorEntity: $reading")
             latestSensorMap[sensorId] = reading
         }
+        println("Broadcasting ${latestSensorMap.size} sensors to WebSocket clients")
         // Convert the latest sensor map to JSON and broadcast it to WebSocket clients
         val jsonPayload = objectMapper.writeValueAsString(latestSensorMap)
+
+        println("JSON payload to broadcast: $jsonPayload")
 
         // Broadcast the JSON payload to WebSocket clients
         scope.launch {
