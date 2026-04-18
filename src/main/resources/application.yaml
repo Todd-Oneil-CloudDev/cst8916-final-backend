@@ -12,6 +12,10 @@ spring:
       connection-mode: Direct
       user-agent-suffix: backend-service
 
+  security:
+    cors:
+      allowed-origin: ${FRONTEND_URL}
+
 server:
   port: 8080
 

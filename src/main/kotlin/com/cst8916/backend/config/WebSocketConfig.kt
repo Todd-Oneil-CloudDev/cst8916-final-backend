@@ -1,6 +1,7 @@
 package com.cst8916.backend.config
 
 import com.cst8916.backend.service.SensorWebSocketHandler
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.socket.config.annotation.EnableWebSocket
@@ -12,9 +13,13 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 @EnableWebSocket
 class WebSocketConfig : WebSocketConfigurer {
 
+    @Value("\${spring.security.cors.allowed-origin}")
+    var frontendUrl: String? = ""
+
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
+        println("Registering WebSocket handler with allowed origin: $frontendUrl")
         registry.addHandler(sensorWebSocketHandler(), "/ws/sensors")
-            .setAllowedOrigins("*", "https://cst8916final.z9.web.core.windows.net/")
+            .setAllowedOrigins("*", frontendUrl!!)
             .addInterceptors(HttpSessionHandshakeInterceptor())
     }
     @Bean
